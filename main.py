@@ -17,6 +17,9 @@ class JanelaPrincipal(QMainWindow):
         # Inicializa a classe pai, nesse caso, QMainWindow
         super().__init__()
 
+        # Variável para armazenar a linha que está sendo editada
+        self.linha_editando = None
+
         # Configurações da janela
         self.resize(800, 600)
         self.setWindowTitle("Biblioteca de Games")
@@ -37,6 +40,7 @@ class JanelaPrincipal(QMainWindow):
         self.botao_adicionar = QPushButton("Adicionar")
         self.botao_editar = QPushButton("Editar")
         self.botao_excluir = QPushButton("Excluir")
+        self.botao_cancelar = QPushButton("Cancelar")
         
         # Cria o ComboBox para definição de status dos Games
         self.combo_status = QComboBox()
@@ -67,10 +71,16 @@ class JanelaPrincipal(QMainWindow):
         self.layout.addWidget(self.botao_adicionar)
         self.layout.addWidget(self.botao_editar)
         self.layout.addWidget(self.botao_excluir)
+        self.layout.addWidget(self.botao_cancelar)
+
+        # Desabilita o botão de cancelar a edição inicialmente
+        self.botao_cancelar.setEnabled(False)
+        
 
         # Conecta o botão ao método
         self.botao_adicionar.clicked.connect(self.adicionar_jogo)
         self.botao_editar.clicked.connect(self.editar_jogo)
+        self.botao_cancelar.clicked.connect(self.cancelar_edicao)
 
 
     def adicionar_jogo(self):
@@ -81,19 +91,41 @@ class JanelaPrincipal(QMainWindow):
         if not nome:
             return
 
-        linha = self.tabela.rowCount()
-        self.tabela.insertRow(linha)
+        # Verifica se estamos editando uma linha existente ou adicionando uma nova
+        if self.linha_editando is None:
+            linha = self.tabela.rowCount()
+            self.tabela.insertRow(linha)
+            self.tabela.setItem(
+                linha,
+                0,
+                QTableWidgetItem(nome)
+            )
+            self.tabela.setItem(
+                linha,
+                1,
+                QTableWidgetItem(status)
+            )
+        # Se estivermos editando, atualiza os valores da linha existente
+        else:
+            self.tabela.setItem(
+                self.linha_editando,
+                0,
+                QTableWidgetItem(nome)
+            )
+            self.tabela.setItem(
+                self.linha_editando,
+                1,
+                QTableWidgetItem(status)
+            )
 
-        self.tabela.setItem(
-            linha,
-            0,
-            QTableWidgetItem(nome)
-        )
-        self.tabela.setItem(
-            linha,
-            1,
-            QTableWidgetItem(status)
-        )
+            # Altera o texto do botão de volta para "Adicionar"
+            self.botao_adicionar.setText("Adicionar")
+
+            # Limpa a variável de edição após atualizar a linha
+            self.linha_editando = None
+
+            # Desabilita o botão de cancelar a edição após salvar as alterações
+            self.botao_cancelar.setEnabled(False)
 
         self.campo_texto.clear()
         self.campo_texto.setFocus()
@@ -106,6 +138,9 @@ class JanelaPrincipal(QMainWindow):
         if linha < 0:
             return
 
+        # Armazena a linha que está sendo editada
+        self.linha_editando = linha
+
         # Obtém os valores da linha selecionada
         nome = self.tabela.item(linha, 0).text()
         status = self.tabela.item(linha, 1).text()
@@ -113,6 +148,29 @@ class JanelaPrincipal(QMainWindow):
         # Atualiza os campos de texto e combo box com os valores da linha selecionada
         self.campo_texto.setText(nome)
         self.combo_status.setCurrentText(status)
+
+        # Altera o texto do botão para indicar que estamos salvando uma edição
+        self.botao_adicionar.setText("Salvar")
+
+        # Habilita o botão de cancelar a edição
+        self.botao_cancelar.setEnabled(True)
+
+    def cancelar_edicao(self):
+        # Limpa a variável de edição, indicando que não estamos mais editando nenhuma linha
+        self.linha_editando = None
+
+        # Altera o texto do botão de volta para "Adicionar"
+        self.botao_adicionar.setText("Adicionar")
+
+        # Desabilita o botão de cancelar a edição
+        self.botao_cancelar.setEnabled(False)
+
+        # Limpa o campo de texto e retorna o foco para ele
+        self.campo_texto.clear()
+
+        # Retorna o foco para o campo de texto
+        self.campo_texto.setFocus()
+
 
 # Cria a aplicação
 app = QApplication([])
