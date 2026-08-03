@@ -6,7 +6,8 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QComboBox,
-    QTableWidget
+    QTableWidget,
+    QTableWidgetItem
 )
 
 
@@ -69,15 +70,49 @@ class JanelaPrincipal(QMainWindow):
 
         # Conecta o botão ao método
         self.botao_adicionar.clicked.connect(self.adicionar_jogo)
+        self.botao_editar.clicked.connect(self.editar_jogo)
 
 
     def adicionar_jogo(self):
-        nome = self.campo_texto.text()
+        nome = self.campo_texto.text().strip()
         status = self.combo_status.currentText()
-        print(f"{nome}  =>  {status}")
+
+        # Cria validação dos dados, impedindo a inserção de células vazias
+        if not nome:
+            return
+
+        linha = self.tabela.rowCount()
+        self.tabela.insertRow(linha)
+
+        self.tabela.setItem(
+            linha,
+            0,
+            QTableWidgetItem(nome)
+        )
+        self.tabela.setItem(
+            linha,
+            1,
+            QTableWidgetItem(status)
+        )
+
         self.campo_texto.clear()
         self.campo_texto.setFocus()
 
+    def editar_jogo(self):
+        # Obtém a linha selecionada na tabela
+        linha = self.tabela.currentRow()
+
+        # Valida se a linha selecionada é válida
+        if linha < 0:
+            return
+
+        # Obtém os valores da linha selecionada
+        nome = self.tabela.item(linha, 0).text()
+        status = self.tabela.item(linha, 1).text()
+
+        # Atualiza os campos de texto e combo box com os valores da linha selecionada
+        self.campo_texto.setText(nome)
+        self.combo_status.setCurrentText(status)
 
 # Cria a aplicação
 app = QApplication([])
@@ -90,3 +125,4 @@ janela.show()
 
 # Executa a aplicação
 app.exec()
+
