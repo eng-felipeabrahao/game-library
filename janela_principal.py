@@ -1,5 +1,6 @@
+from modelos import Jogo
+
 from PySide6.QtWidgets import (
-    QApplication,
     QMainWindow,
     QWidget,
     QVBoxLayout,
@@ -21,6 +22,9 @@ class JanelaPrincipal(QMainWindow):
 
         # Estado da aplicação
         self.linha_editando = None
+
+        # Lista de jogos da aplicação
+        self.jogos = []
 
         # Configurações da janela
         self.resize(800, 600)
@@ -96,7 +100,14 @@ class JanelaPrincipal(QMainWindow):
         if not nome:
             return
 
+        # Cria um objeto Jogo
+        jogo = Jogo(nome, status)
+
         if self.linha_editando is None:
+
+            # Adiciona o jogo à lista
+            self.jogos.append(jogo)
+
             linha = self.tabela.rowCount()
 
             self.tabela.insertRow(linha)
@@ -104,26 +115,26 @@ class JanelaPrincipal(QMainWindow):
             self.tabela.setItem(
                 linha,
                 0,
-                QTableWidgetItem(nome)
+                QTableWidgetItem(jogo.nome)
             )
 
             self.tabela.setItem(
                 linha,
                 1,
-                QTableWidgetItem(status)
+                QTableWidgetItem(jogo.status)
             )
 
         else:
             self.tabela.setItem(
                 self.linha_editando,
                 0,
-                QTableWidgetItem(nome)
+                QTableWidgetItem(jogo.nome)
             )
 
             self.tabela.setItem(
                 self.linha_editando,
                 1,
-                QTableWidgetItem(status)
+                QTableWidgetItem(jogo.status)
             )
 
             self.finalizar_edicao()
@@ -151,7 +162,6 @@ class JanelaPrincipal(QMainWindow):
     def cancelar_edicao(self):
         self.finalizar_edicao()
 
-    #
     def finalizar_edicao(self):
         self.linha_editando = None
         self.botao_adicionar.setText("Adicionar")
