@@ -1,4 +1,4 @@
-from modelos import Jogo
+from gerenciador_jogos import GerenciadorJogos
 
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -22,9 +22,7 @@ class JanelaPrincipal(QMainWindow):
 
         # Estado da aplicação
         self.linha_editando = None
-
-        # Lista de jogos da aplicação
-        self.jogos = []
+        self.gerenciador = GerenciadorJogos()
 
         # Configurações da janela
         self.resize(800, 600)
@@ -100,24 +98,20 @@ class JanelaPrincipal(QMainWindow):
         if not nome:
             return
 
-        jogo = Jogo(nome, status)
-
         if self.linha_editando is None:
 
-            # Adiciona o jogo aos dados
-            self.jogos.append(jogo)
+            self.gerenciador.adicionar(nome, status)
 
         else:
 
-            # Atualiza o jogo existente
-            jogo_existente = self.jogos[self.linha_editando]
-
-            jogo_existente.nome = nome
-            jogo_existente.status = status
+            self.gerenciador.atualizar(
+                self.linha_editando,
+                nome,
+                status
+            )
 
             self.finalizar_edicao()
 
-        # Atualiza a representação visual
         self.atualizar_tabela()
 
         self.campo_texto.clear()
@@ -126,7 +120,7 @@ class JanelaPrincipal(QMainWindow):
     def atualizar_tabela(self):
         self.tabela.setRowCount(0)
 
-        for jogo in self.jogos:
+        for jogo in self.gerenciador.listar():
             linha = self.tabela.rowCount()
 
             self.tabela.insertRow(linha)
@@ -151,7 +145,7 @@ class JanelaPrincipal(QMainWindow):
 
         self.linha_editando = linha
 
-        jogo = self.jogos[linha]
+        jogo = self.gerenciador.obter(linha)
 
         self.campo_texto.setText(jogo.nome)
         self.combo_status.setCurrentText(jogo.status)
@@ -182,5 +176,5 @@ class JanelaPrincipal(QMainWindow):
         )
 
         if resposta == QMessageBox.StandardButton.Yes:
-            self.jogos.pop(linha)
+            self.gerenciador.excluir(linha)
             self.atualizar_tabela()
