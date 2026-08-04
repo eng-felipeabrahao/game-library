@@ -100,14 +100,33 @@ class JanelaPrincipal(QMainWindow):
         if not nome:
             return
 
-        # Cria um objeto Jogo
         jogo = Jogo(nome, status)
 
         if self.linha_editando is None:
 
-            # Adiciona o jogo à lista
+            # Adiciona o jogo aos dados
             self.jogos.append(jogo)
 
+        else:
+
+            # Atualiza o jogo existente
+            jogo_existente = self.jogos[self.linha_editando]
+
+            jogo_existente.nome = nome
+            jogo_existente.status = status
+
+            self.finalizar_edicao()
+
+        # Atualiza a representação visual
+        self.atualizar_tabela()
+
+        self.campo_texto.clear()
+        self.campo_texto.setFocus()
+
+    def atualizar_tabela(self):
+        self.tabela.setRowCount(0)
+
+        for jogo in self.jogos:
             linha = self.tabela.rowCount()
 
             self.tabela.insertRow(linha)
@@ -124,24 +143,6 @@ class JanelaPrincipal(QMainWindow):
                 QTableWidgetItem(jogo.status)
             )
 
-        else:
-            self.tabela.setItem(
-                self.linha_editando,
-                0,
-                QTableWidgetItem(jogo.nome)
-            )
-
-            self.tabela.setItem(
-                self.linha_editando,
-                1,
-                QTableWidgetItem(jogo.status)
-            )
-
-            self.finalizar_edicao()
-
-        self.campo_texto.clear()
-        self.campo_texto.setFocus()
-
     def editar_jogo(self):
         linha = self.tabela.currentRow()
 
@@ -150,11 +151,10 @@ class JanelaPrincipal(QMainWindow):
 
         self.linha_editando = linha
 
-        nome = self.tabela.item(linha, 0).text()
-        status = self.tabela.item(linha, 1).text()
+        jogo = self.jogos[linha]
 
-        self.campo_texto.setText(nome)
-        self.combo_status.setCurrentText(status)
+        self.campo_texto.setText(jogo.nome)
+        self.combo_status.setCurrentText(jogo.status)
 
         self.botao_adicionar.setText("Salvar")
         self.botao_cancelar.setEnabled(True)
@@ -182,4 +182,5 @@ class JanelaPrincipal(QMainWindow):
         )
 
         if resposta == QMessageBox.StandardButton.Yes:
-            self.tabela.removeRow(linha)
+            self.jogos.pop(linha)
+            self.atualizar_tabela()
