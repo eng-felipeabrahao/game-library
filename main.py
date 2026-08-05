@@ -3,10 +3,16 @@ from PySide6.QtWidgets import QApplication
 from janela_principal import JanelaPrincipal
 
 
-app = QApplication([])
+def main():
+    """Inicializa e executa a aplicação."""
 
-janela = JanelaPrincipal()
+    app = QApplication([])
 
-janela.show()
+    janela = JanelaPrincipal()
+    janela.show()
 
-app.exec()
+    app.exec()
+
+
+if __name__ == "__main__":
+    main()
