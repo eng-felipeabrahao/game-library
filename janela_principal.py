@@ -1,6 +1,5 @@
 from gerenciador_jogos import GerenciadorJogos
-
-from PySide6.QtCore import Qt
+from modelo_tabela import ModeloJogos
 
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -9,8 +8,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QComboBox,
-    QTableWidget,
-    QTableWidgetItem,
+    QTableView,
     QMessageBox,
     QHeaderView,
     QAbstractItemView
@@ -37,6 +35,8 @@ class JanelaPrincipal(QMainWindow):
         self.atualizar_tabela()
 
     def configurar_janela(self):
+
+        # Define as dimensões e o título da janela principal.
         self.resize(800, 600)
         self.setWindowTitle("Biblioteca de Games")
 
@@ -71,23 +71,23 @@ class JanelaPrincipal(QMainWindow):
             "Zerado"
         ])
 
-        # Tabela utilizada para apresentar os jogos cadastrados.
-        self.tabela = QTableWidget()
+        # Cria a tabela responsável pela apresentação dos dados.
+        self.tabela = QTableView()
 
-        self.tabela.setColumnCount(2)
+        # Cria o modelo responsável por fornecer os jogos à tabela.
+        self.modelo_tabela = ModeloJogos()
 
-        self.tabela.setHorizontalHeaderLabels([
-            "Nome",
-            "Status"
-        ])
+        # Conecta o modelo à tabela.
+        self.tabela.setModel(
+            self.modelo_tabela
+        )
 
-        # Faz as colunas ocuparem proporcionalmente todo o espaço disponível.
+        # Faz as colunas ocuparem todo o espaço disponível.
         self.tabela.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch
         )
 
-        # A edição dos registros será feita pelos controles da interface,
-        # evitando alterações diretas que poderiam ignorar nossas regras.
+        # Impede a edição direta das células.
         self.tabela.setEditTriggers(
             QAbstractItemView.EditTrigger.NoEditTriggers
         )
@@ -146,6 +146,11 @@ class JanelaPrincipal(QMainWindow):
             self.cancelar_edicao
         )
 
+        # Permite iniciar uma edição com duplo clique em uma célula.
+        self.tabela.doubleClicked.connect(
+            self.editar_jogo
+        )
+
     def adicionar_jogo(self):
 
         nome = self.campo_texto.text().strip()
@@ -182,71 +187,44 @@ class JanelaPrincipal(QMainWindow):
 
     def atualizar_tabela(self):
 
-        # A tabela representa o estado atual do banco, portanto é reconstruída
-        # após cada operação de alteração.
-        self.tabela.setRowCount(0)
-
+        # Obtém os jogos atualmente persistidos.
         jogos = self.gerenciador.listar()
 
-        for jogo in jogos:
+        # Informa ao modelo que seus dados serão substituídos.
+        self.modelo_tabela.beginResetModel()
 
-            linha = self.tabela.rowCount()
+        self.modelo_tabela.jogos = jogos
 
-            self.tabela.insertRow(linha)
-
-            item_nome = QTableWidgetItem(
-                jogo.nome
-            )
-
-            # Armazena o ID do banco no item sem exibi-lo ao usuário.
-            # Isso permite identificar o registro independentemente da linha.
-            item_nome.setData(
-                Qt.ItemDataRole.UserRole,
-                jogo.id
-            )
-
-            self.tabela.setItem(
-                linha,
-                0,
-                item_nome
-            )
-
-            self.tabela.setItem(
-                linha,
-                1,
-                QTableWidgetItem(
-                    jogo.status
-                )
-            )
+        # Informa ao QTableView que o modelo foi atualizado.
+        self.modelo_tabela.endResetModel()
 
     def obter_jogo_selecionado(self):
 
-        linha = self.tabela.currentRow()
+        # Obtém o índice da linha atualmente selecionada.
+        linha = self.tabela.currentIndex().row()
 
         if linha < 0:
             return None
 
-        item = self.tabela.item(
-            linha,
-            0
-        )
+        # Obtém o jogo correspondente à linha selecionada no modelo.
+        jogo = self.modelo_tabela.jogos[linha]
 
-        jogo_id = item.data(
-            Qt.ItemDataRole.UserRole
-        )
-
+        # Busca o registro atualizado através do seu ID.
         return self.gerenciador.obter(
-            jogo_id
+            jogo.id
         )
 
-    def editar_jogo(self):
+    def editar_jogo(self, index=None):
 
+        # O parâmetro index é enviado pelo sinal doubleClicked.
+        # Quando o método é chamado pelo botão, ele permanece como None.
         jogo = self.obter_jogo_selecionado()
 
         if jogo is None:
             return
 
-        self.linha_editando = self.tabela.currentRow()
+        # Armazena a linha que está sendo editada.
+        self.linha_editando = self.tabela.currentIndex().row()
 
         self.campo_texto.setText(
             jogo.nome
@@ -265,6 +243,7 @@ class JanelaPrincipal(QMainWindow):
         )
 
     def cancelar_edicao(self):
+
         self.finalizar_edicao()
 
     def finalizar_edicao(self):
