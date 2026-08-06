@@ -61,3 +61,11 @@ class ModeloJogos(QAbstractTableModel):
             return self.CABECALHOS[section]
 
         return None
+
+    def atualizar_jogos(self, jogos):
+        # Atualiza a lista de jogos e notifica a tabela sobre a alteração.
+        self.beginResetModel()
+
+        self.jogos = jogos
+
+        self.endResetModel()

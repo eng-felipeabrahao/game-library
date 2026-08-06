@@ -190,13 +190,8 @@ class JanelaPrincipal(QMainWindow):
         # Obtém os jogos atualmente persistidos.
         jogos = self.gerenciador.listar()
 
-        # Informa ao modelo que seus dados serão substituídos.
-        self.modelo_tabela.beginResetModel()
-
-        self.modelo_tabela.jogos = jogos
-
-        # Informa ao QTableView que o modelo foi atualizado.
-        self.modelo_tabela.endResetModel()
+        # Delega ao modelo a atualização dos dados da tabela.
+        self.modelo_tabela.atualizar_jogos(jogos)
 
     def obter_jogo_selecionado(self):
 
