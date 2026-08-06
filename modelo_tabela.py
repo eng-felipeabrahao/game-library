@@ -43,5 +43,24 @@ class ModeloJogos(QAbstractTableModel):
         if index.column() == 1:
             return jogo.status
 
-        # Retorna None para colunas não definidas pelo modelo.
+        return None
+
+    def headerData(
+        self,
+        section,
+        orientation,
+        role=Qt.ItemDataRole.DisplayRole
+    ):
+        # Define os textos exibidos nos cabeçalhos da tabela.
+        if role != Qt.ItemDataRole.DisplayRole:
+            return None
+
+        if orientation == Qt.Orientation.Horizontal:
+
+            if section == 0:
+                return "Nome"
+
+            if section == 1:
+                return "Status"
+
         return None
