@@ -3,12 +3,16 @@ from PySide6.QtCore import QAbstractTableModel, Qt
 
 class ModeloJogos(QAbstractTableModel):
 
+    CABECALHOS = [
+        "Nome",
+        "Status"
+    ]
+
     def __init__(self, jogos=None):
         # Inicializa a classe base QAbstractTableModel.
         super().__init__()
 
         # Armazena a lista de jogos que será apresentada pela tabela.
-        # Caso nenhuma lista seja fornecida, utiliza uma lista vazia.
         self.jogos = jogos or []
 
     def rowCount(self, parent=None):
@@ -16,8 +20,8 @@ class ModeloJogos(QAbstractTableModel):
         return len(self.jogos)
 
     def columnCount(self, parent=None):
-        # A tabela possui duas colunas: Nome e Status.
-        return 2
+        # Retorna a quantidade de colunas definida pelo modelo.
+        return len(self.CABECALHOS)
 
     def data(
         self,
@@ -35,11 +39,9 @@ class ModeloJogos(QAbstractTableModel):
         # Obtém o jogo correspondente à linha solicitada.
         jogo = self.jogos[index.row()]
 
-        # A primeira coluna apresenta o nome do jogo.
         if index.column() == 0:
             return jogo.nome
 
-        # A segunda coluna apresenta o status do jogo.
         if index.column() == 1:
             return jogo.status
 
@@ -56,11 +58,6 @@ class ModeloJogos(QAbstractTableModel):
             return None
 
         if orientation == Qt.Orientation.Horizontal:
-
-            if section == 0:
-                return "Nome"
-
-            if section == 1:
-                return "Status"
+            return self.CABECALHOS[section]
 
         return None
